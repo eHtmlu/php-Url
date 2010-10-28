@@ -1,0 +1,167 @@
+
+* {
+	margin:0;
+	padding:0;
+	font-size:1em;
+}
+
+body {
+	font-family:Verdana;
+	font-size:0.75em;
+}
+
+
+
+#header {
+	padding:20px;
+	background:#696;
+	color:#fff;
+}
+
+#header h1 {
+	text-align:center;
+	font-size:1.5em;
+}
+
+
+
+
+table {
+	border-spacing:0;
+	width:100%;
+	overflow:scroll;
+}
+
+thead th {
+	background:#9c9;
+	color:#fff;
+	padding:1px;
+	border:1px solid;
+	border-color:#fff #000 #000 #fff;
+	cursor:default;
+}
+
+thead th.mousedown {
+	border-color:#000 #fff #fff #000;
+	background:#696;
+	color:#ccc;
+}
+
+thead th.upward {
+	background-image:url(img/up.png);
+	background-repeat:no-repeat;
+	background-position:right center;
+}
+
+thead th.downward {
+	background-image:url(img/down.png);
+	background-repeat:no-repeat;
+	background-position:right center;
+}
+
+tbody td {
+	border-right:#999 solid 1px;
+	padding:3px 5px;
+}
+
+tbody tr.second {
+	background:#eee;
+}
+
+tbody tr.deleteselection {
+	background:#f99;
+}
+
+tfoot td {
+	border-top:#999 solid 1px;
+	padding:3px 5px;
+}
+
+td a {
+	color:#363;
+	text-decoration:none;
+}
+
+td a:hover {
+	text-decoration:underline;
+}
+
+td.id,td.parents,td.children {
+	text-align:right;
+}
+
+
+
+
+form {
+	background:#dfd;
+	border:#cec solid 1px;
+	width:800px;
+	margin:20px auto 0;
+	padding:15px;
+}
+
+form fieldset {
+	border:0;
+	border-top:#000 solid 1px;
+	padding:15px 0 0;
+	margin-top:10px;
+}
+
+form h1 {
+	text-align:center;
+}
+
+form fieldset.control {
+	text-align:right;
+}
+
+form fieldset.control input {
+	padding:3px 10px;
+	width:100px;
+}
+
+form label,form div.label {
+	display:block;
+	padding-bottom:5px;
+	clear:both;
+	float:left;
+	width:100%;
+}
+
+form span.label,form .link span.label {
+	display:block;
+	float:left;
+	width:115px;
+}
+
+form label input {
+	width:150px;
+}
+
+form label input.namespace {
+	font-weight:bold;
+}
+
+form select {
+	width:250px;
+	float:left;
+}
+
+form .link span {
+	display:block;
+	width:auto;
+	float:left;
+}
+
+form .link input {
+	width:70px;
+	display:block;
+}
+
+form .submit {
+	font-weight:bold;
+}
+
+
+

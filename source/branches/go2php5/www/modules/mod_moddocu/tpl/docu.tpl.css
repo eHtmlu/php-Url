@@ -1,0 +1,140 @@
+* {
+	font-size:1em;
+	border-style:none;
+	margin:0;
+	padding:0;
+	color:#666;
+}
+
+body {
+	font-family:Verdana;
+	font-size:0.75em;
+}
+
+h1,h2,h3,h4,h5,h6,h7 {
+	color:#000;
+}
+
+h1 {
+	background-color:#66c;
+	padding:5px;
+	color:#fff;
+}
+
+h2 {
+	background-color:#ccf;
+	padding:2px 20px;
+}
+
+h3 {
+	display:inline;
+	padding-right:20px;
+}
+
+h4 {
+	margin-top:10px;
+}
+
+.warning {
+	padding:10px;
+	background-color:#fcc;
+	color:#f00;
+	border:#f00 solid 2px;
+}
+
+.dfnheader {
+	padding:2px 30px;
+	cursor:pointer;
+}
+
+.dfnheader .todo {
+	padding-left:20px;
+	color:#f00;
+	font-weight:bold;
+}
+
+.dfnheader:hover {
+	background-color:#eef;
+}
+
+.dfn {
+	display:none;
+	padding:0 10px 10px;
+	margin-left:60px;
+	border-left:#000 solid 2px;
+	margin-bottom:10px;
+	background-color:#ffc;
+}
+
+.comments p {
+	margin-bottom:8px;
+	margin-left:30px;
+}
+
+.parameters li {
+	margin-left:30px;
+	padding-bottom:5px;
+}
+
+.parameters var {
+	padding-right:10px;
+}
+
+.parameters var strong {
+	color:#009;
+	padding-right:10px;
+}
+
+.parameters p {
+	margin-bottom:8px;
+}
+
+.return var {
+	padding-right:10px;
+}
+
+.return p {
+	color:#060;
+	margin-bottom:8px;
+	margin-left:30px;
+}
+
+.dfn .todo {
+	background-color:#fcc;
+	padding:5px 0;
+	border:#c00 solid 1px;
+}
+
+.todo li {
+	margin-left:30px;
+	padding-bottom:10px;
+}
+
+.todo p {
+	margin-bottom:8px;
+	color:#c00;
+}
+
+.examples code {
+	border:#cc0 solid 1px;
+	background-color:#fff;
+	line-height:1em;
+	margin-bottom:5px;
+	margin-left:30px;
+	font-family:Courier;
+	padding:5px;
+	display:block;
+	overflow:auto;
+}
+
+.true {
+	color:#060;
+	font-style:italic;
+	font-weight:bold;
+}
+
+.false {
+	color:#600;
+	font-style:italic;
+	font-weight:bold;
+}
