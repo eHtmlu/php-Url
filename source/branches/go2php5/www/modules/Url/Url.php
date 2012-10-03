@@ -11,14 +11,28 @@
 class Url
 {
    /**
-    * The parts of the initialized url as a name -> value object.
+    * The host of the initialized url
+    */
+   private $host;
+
+   /**
+    * The parts (other than host) of the initialized url as an array.
+    * The indexes are equal to the constants of the URLPARTS class.
     */
    private $tokens;
 
    /**
-    * The document root of the server (generated on a saver way as only to get it by $_SERVER['DOCUMENT_ROOT'] )
+    * The delimiter characters of the url parts as an array
+    * The indexes are equal to the constants of the URLPARTS class.
     */
-   private $DOCUMENT_ROOT;
+   private $delimiter = array(
+      URLPARTS::SCHEME => array(false, ':'),
+      URLPARTS::AUTHENTICATION => array(false, '@'),
+      URLPARTS::PORT => array(':', false),
+      URLPARTS::PATH => array('/', false),
+      URLPARTS::QUERY => array('?', false),
+      URLPARTS::FRAGMENT => array('#', false)
+   );
 
    /**
     * Initialize the tokens of a given Url, a given path or the current user request
@@ -27,8 +41,6 @@ class Url
     */
    public function __construct($fileOrUrl = null)
    {
-        $this->DOCUMENT_ROOT = realpath((getenv('DOCUMENT_ROOT') && preg_match('/^'.preg_quote(realpath(getenv('DOCUMENT_ROOT'))).'/', realpath(__FILE__))) ? getenv('DOCUMENT_ROOT') : str_replace(dirname(@$_SERVER['PHP_SELF']), '', str_replace(DIRECTORY_SEPARATOR, '/', dirname(__FILE__))));
-
       if ($fileOrUrl === null)
       {
          $this->initTokensByCurrentRequest();
@@ -41,68 +53,156 @@ class Url
       {
          $this->initTokensByUrl($fileOrUrl);
       }
-
-      $this->updateAdditionalTokens();
    }
 
    /**
-    * Returns a string with all url parts which are desired by a given format string.
-    * The format string can include the following characters:
+    * Gets the scheme part of the url
     *
-    * s -> {scheme}      (examples: "http", "https")
-    *
-    * S -> {scheme}:     (examples: "http:", "https:")
-    *                    If {scheme} is empty, the result of this shortcut is also empty.
-    *
-    * u -> {user}        (examples: "admin", "administrator")
-    *
-    * k -> {pass}        (examples: "1234", "h1ghSecurePa$$w0rd!")
-    *
-    * h -> {host}        (examples: "localhost", "example.com", "www.example.com", "subdomain.example.com")
-    *
-    * o -> {port}        (examples: "8080", "80")
-    *
-    * O -> :{port}       (examples: ":8080", "")
-    *                    If {port} is empty or the default port of {scheme}, the result of this shortcut is empty.
-    *
-    * p -> {path}        (examples: "subdir/filename.htm", "fileInRootDirectory.htm")
-    *
-    * P -> /{path}       (examples: "/subdir/filename.htm", "/fileInRootDirectory.htm")
-    *
-    * q -> {query}       (examples: "name1=value1&name2=value2", "sid=0987654321")
-    *
-    * Q -> ?{query}      (examples: "?name1=value1&name2=value2", "?sid=0987654321")
-    *                    If {query} is empty, the result of this shortcut is also empty.
-    *
-    * f -> {fragment}    (examples: "top", "content")
-    *
-    * F -> #{fragment}   (examples: "#top", "#content")
-    *                    If {fragment} is empty, the result of this shortcut is also empty.
-    *
-    *
-    * l -> {user}:{pass}                    (examples: "admin:1234", "administrator:h1ghSecurePa$$w0rd!")
-    *                                       The colon will be only returned if {pass} is not empty. So if {user} and {pass} are empty, the result of this shortcut is also empty.
-    *
-    * L -> {user}:{pass}@                   (examples: "admin:1234@", "administrator:h1ghSecurePa$$w0rd!@")
-    *                                       The delimiter characters will be only returned if needed. If {user} and {pass} are empty, the result of this shortcut is also empty.
-    *
-    * a -> {user}:{pass}@{host}:{port}      (examples: "admin:1234@localhost:8080", "administrator:h1ghSecurePa$$w0rd!@example.com:80")
-    *                                       The delimiter characters will be only returned if needed. If {user} and {pass} are empty and the port is the default port of {scheme}, the result of this shortcut only contains "{host}".
-    *
-    * A -> //{user}:{pass}@{host}:{port}    (examples: "//admin:1234@localhost:8080", "//administrator:h1ghSecurePa$$w0rd!@example.com:80")
-    *                                       The delimiter characters will be only returned if needed. If {user} and {pass} are empty and the port is the default port of {scheme}, the result of this shortcut only contains "//{host}".
-    *
-    * @param string $format A string which defines the content of the result string by character shortcuts. The default value is "SAPQF" which represents a complete url.
-    * @return string The result of the parsed format string
+    * @return string Scheme part of the url
     */
-   public function get($format = 'SAPQF')
+   public function getScheme()
    {
-      $tokens = preg_split('/([sSukhoOpPqQfFlLaA])/', $format, -1, PREG_SPLIT_DELIM_CAPTURE);
-      for ($i = 1; $i < count($tokens); $i += 2)
+      return $this->tokens[URLPARTS::SCHEME];
+   }
+
+   /**
+    * Gets the authentication part of the url
+    *
+    * @return string Authentication part of the url
+    */
+   public function getAuthentication()
+   {
+      return $this->tokens[URLPARTS::AUTHENTICATION];
+   }
+
+   /**
+    * Gets an associative array of the authentication part of the url
+    *
+    * @return array Authentication part of the url as an associative array with the indexes "username" and "password"
+    */
+   public function getAuthenticationParameters()
+   {
+      $auth = explode(':', $this->tokens[URLPARTS::AUTHENTICATION], 2);
+
+      return array(
+      	'username' => urldecode($auth[0]),
+      	'password' => urldecode($auth[1])
+      );
+   }
+
+   /**
+    * Gets the host part of the url
+    *
+    * @return string Host part of the url
+    */
+   public function getHost()
+   {
+      return $this->host;
+   }
+
+   /**
+    * Gets the port part of the url
+    *
+    * @return string Port part of the url
+    */
+   public function getPort()
+   {
+      return $this->tokens[URLPARTS::PORT];
+   }
+
+   /**
+    * Gets the path part of the url (without the root slash)
+    *
+    * @return string Path part of the url (without the root slash)
+    */
+   public function getPath()
+   {
+      return $this->tokens[URLPARTS::PATH];
+   }
+
+   /**
+    * Gets the query part of the url
+    *
+    * @return string Query part of the url
+    */
+   public function getQuery()
+   {
+      return $this->tokens[URLPARTS::QUERY];
+   }
+
+   /**
+    * Gets an associative array of the query part of the url. Like the global $_GET variable of the current request
+    *
+    * @todo arrays should be interpreted - equal to $_GET variable of PHP (example: //localhost/?name[]=1&name[]=2 )
+    *
+    * @return array An associative array of the query parameters
+    */
+   public function getQueryParameters()
+   {
+      $param = array();
+
+      foreach (explode('&', $this->tokens[URLPARTS::QUERY]) as $item)
       {
-         $tokens[$i] = $this->tokens->{$tokens[$i]};
+         $item = explode('=', $item, 2);
+         $param[urldecode($item[0])] = urldecode($item[1]);
       }
-      return implode($tokens);
+
+      return $param;
+   }
+
+   /**
+    * Gets the fragment part of the url
+    *
+    * @return string Fragment part of the url
+    */
+   public function getFragment()
+   {
+      return $this->tokens[URLPARTS::FRAGMENT];
+   }
+
+   /**
+    * Gets the whole well formed and correct url as a string
+    *
+    * @return string The whole well formed and correct formatted url
+    */
+   public function getUrl()
+   {
+      return $this->getUrlPartSequence(URLPARTS::SCHEME | URLPARTS::AUTHENTICATION | URLPARTS::PORT | URLPARTS::PATH | URLPARTS::QUERY | URLPARTS::FRAGMENT);
+   }
+
+   /**
+    * Returns one part of the url based on a given bit constant of the URLPARTS class
+    *
+    * @param int $part One bit constant of URLPARTS class
+    * @param mixed $delimiter The delimiter character of the url part will be (on TRUE) or will be not (on FALSE) in the result. If is NULL (default) the delimiter will only be in the result if the url part is not empty.
+    * @return string The part of the url which is associated with the bit constance in the $part parameter
+    */
+   public function getUrlPart($part, $delimited = null)
+   {
+      return $delimited === true || $delimited === null && $this->tokens[$part]
+             ? $this->delimiter[$part][0] . $this->tokens[$part] . $this->delimiter[$part][1]
+             : $this->tokens[$part];
+   }
+
+   /**
+    * Gets a well formed and correct url as a string, based on bit constants of the URLPARTS class
+    *
+    * @param int $parts An integer based on the combination of bit constants from the URLPARTS class
+    * @return string A well formed and correct formatted url
+    */
+   // @todo der port wird hier ungefragt weggelassen, wenn es sich um den default port des schemas handelt. Dies sollte noch überlegt werden ob das gut ist.
+   public function getUrlPartSequence($parts = null)
+   {
+      return (($parts & 1) === 1 ? $this->getUrlPart(URLPARTS::SCHEME) : '') .
+             '//' .
+             (($parts & 2) === 2 ? $this->getUrlPart(URLPARTS::AUTHENTICATION) : '') .
+             $this->host .
+             (($parts & 4) === 4 ? ($this->getUrlPart(URLPARTS::PORT, false) != $this->getDefaultPort($this->getUrlPart(URLPARTS::SCHEME, false)) ? $this->getUrlPart(URLPARTS::PORT) : '') : '') .
+             '/' .
+             (($parts & 8) === 8 ? $this->getUrlPart(URLPARTS::PATH, false) : '') .
+             (($parts & 16) === 16 ? $this->getUrlPart(URLPARTS::QUERY) : '') .
+             (($parts & 32) === 32 ? $this->getUrlPart(URLPARTS::FRAGMENT) : '')
+      ;
    }
 
    /**
@@ -114,11 +214,12 @@ class Url
    public function getRelativePath(Url $base)
    {
       $result = false;
+      $urlPartSequence = URLPARTS::SCHEME | URLPARTS::AUTHENTICATION | URLPARTS::PORT;
 
-      if ($this->get('SA') == $base->get('SA'))
+      if ($this->getUrlPartSequence($urlPartSequence) == $base->getUrlPartSequence($urlPartSequence))
       {
-         $basePath = explode('/', $base->get('P'));
-         $targPath = explode('/', $this->get('P'));
+         $basePath = explode('/', $base->getUrlPart(URLPARTS::PATH, false));
+         $targPath = explode('/', $this->getUrlPart(URLPARTS::PATH, false));
 
          while (isset($basePath[0]) && isset($targPath[0]) && $basePath[0] == $targPath[0])
          {
@@ -133,28 +234,29 @@ class Url
    }
 
    /**
-    * set main tokens based on the current user request (for {scheme},{user},{pass},{host} and {port}) and a given file or directory (for {path}). The parts {query} and {fragment} are left empty.
+    * set tokens based on the current user request (for {scheme},{authentication},{host} and {port}) and a given file or directory (for {path}). The parts {query} and {fragment} are left empty.
     *
     * @param string $fileOrDirname The file or directory path which have to initialize
     */
    private function initTokensByFile($fileOrDirname)
    {
       $fileOrDirname = realpath($fileOrDirname);
+      $documentRoot = $this->getDocumentRoot();
 
-      if (strpos($fileOrDirname, $this->DOCUMENT_ROOT) === 0)
+      if (strpos($fileOrDirname, $documentRoot) === 0)
       {
-         $fileOrDirname = substr($fileOrDirname, strlen($this->DOCUMENT_ROOT));
+         $fileOrDirname = substr($fileOrDirname, strlen($documentRoot));
       }
 
-      $path = str_replace(DIRECTORY_SEPARATOR, '/', $fileOrDirname) . ( is_dir($this->DOCUMENT_ROOT . $fileOrDirname) ? '/' : '' );
+      $path = str_replace(DIRECTORY_SEPARATOR, '/', $fileOrDirname) . ( is_dir($documentRoot . $fileOrDirname) ? '/' : '' );
       $this->initTokensByCurrentRequest();
-      $this->tokens->P = $this->resolvePath($path);
-      $this->tokens->q = '';
-      $this->tokens->f = '';
+      $this->tokens[URLPARTS::PATH] = $this->resolvePath($path);
+      $this->tokens[URLPARTS::QUERY] = '';
+      $this->tokens[URLPARTS::FRAGMENT] = '';
    }
 
    /**
-    * set main tokens based on a given url
+    * set tokens based on a given url
     *
     * @param string $url The relative or absolute url which have to initialize. A relative url is interpreted as relative to the current user request.
     */
@@ -162,61 +264,47 @@ class Url
    {
       $samehost = false;
 
-      preg_match('/^(?:([a-z]+)\:|)(?:\/\/(?:([^\:\@]+)(?:\:([^\:\@]+)|)\@|)([^\/\:]+)|)(?:\:([0-9]+)|)([^\?\#]*)(?:\?([^\#]*)|)(?:\#(.*)|)$/', $url, $match);
+      preg_match('/^(?:([a-z]+)\:|)(?:\/\/(?:([^\:\@]+)(?:\:([^\:\@]+)|)\@|)([^\/\:]+)|)(?:\:([0-9]+)|)([^\?\#]*)(?:\?([^\#]*)|)(?:\#(.*)|)$/i', $url, $match);
 
-      if ($match && ($current = $this->initTokensByCurrentRequest()) && (!$match[4] || $match[4] == $current->h))
+      if ($match)
       {
-         $samehost = true;
+         $this->initTokensByCurrentRequest();
+
+         if (!$match[4] || $match[4] == $this->host)
+         {
+            $samehost = true;
+         }
       }
 
-      $this->tokens = $match ? (object) array(
-         's' => $match[1] ? $match[1] : ($samehost ? $current->s : ''),
-         'u' => $match[2] ? $match[2] : ($samehost ? $current->u : ''),
-         'k' => $match[3] ? $match[3] : ($samehost ? $current->k : ''),
-         'h' => $match[4] ? $match[4] : ($samehost ? $current->h : ''),
-         'o' => $match[5] ? $match[5] : ($samehost ? $current->o : $this->getDefaultPort($match[1])),
-         'P' => $this->resolvePath($samehost && substr($match[6], 0, 1) != '/' ? preg_replace('/\/[^\/]*$/', '/', $current->P).$match[6] : $match[6]),
-         'q' => $match[7],
-         'f' => $match[8]
+      $this->host = $match ? ($match[4] ? $match[4] : ($samehost ? $this->host : '')) : false;
+      $this->tokens = $match ? array(
+         URLPARTS::SCHEME => strtolower($match[1] ? $match[1] : ($samehost ? $this->tokens[URLPARTS::SCHEME] : '')),
+         URLPARTS::AUTHENTICATION => ($match[2].$match[3] ? $match[2] . ($match[3] ? ':' . $match[3] : '') : ($samehost ? $this->tokens[URLPARTS::AUTHENTICATION] : '')),
+         URLPARTS::PORT => $match[5] ? $match[5] : ($samehost ? $this->tokens[URLPARTS::PORT] : $this->getDefaultPort($match[1])),
+         URLPARTS::PATH => $this->resolvePath($samehost && substr($match[6], 0, 1) != '/' ? preg_replace('/\/[^\/]*$/', '/', $this->tokens[URLPARTS::PATH]).$match[6] : $match[6]),
+         URLPARTS::QUERY => $match[7],
+         URLPARTS::FRAGMENT => $match[8]
       ) : false;
    }
 
    /**
-    * set main tokens based on the current user request
+    * set tokens based on the current user request
     */
    private function initTokensByCurrentRequest()
    {
-      return ($this->tokens = (object) array(
-         's' => substr(strtolower($_SERVER["SERVER_PROTOCOL"]), 0, strpos($_SERVER["SERVER_PROTOCOL"], '/')) . ($_SERVER["HTTPS"] && $_SERVER["HTTPS"] != 'off' ? 's' : ''),
-         'u' => $_SERVER['PHP_AUTH_USER'],
-         'k' => $_SERVER['PHP_AUTH_PW'],
-         'h' => $_SERVER['SERVER_NAME'],
-         'o' => $_SERVER['SERVER_PORT'],
-         'P' => $this->resolvePath(strpos($_SERVER['REQUEST_URI'], '?') !== false ? substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], '?')) : $_SERVER['REQUEST_URI']),
-         'q' => $_SERVER['QUERY_STRING'],
-         'f' => ''
+      $this->host = $_SERVER['SERVER_NAME'];
+      return ($this->tokens = array(
+         URLPARTS::SCHEME => substr(strtolower($_SERVER["SERVER_PROTOCOL"]), 0, strpos($_SERVER["SERVER_PROTOCOL"], '/')) . ($_SERVER["HTTPS"] && $_SERVER["HTTPS"] != 'off' ? 's' : ''),
+         URLPARTS::AUTHENTICATION => rawurlencode($_SERVER['PHP_AUTH_USER']) . ($_SERVER['PHP_AUTH_PW'] ? ':' . rawurlencode($_SERVER['PHP_AUTH_PW']) : ''),
+         URLPARTS::PORT => $_SERVER['SERVER_PORT'],
+         URLPARTS::PATH => $this->resolvePath(strpos($_SERVER['REQUEST_URI'], '?') !== false ? substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], '?')) : $_SERVER['REQUEST_URI']),
+         URLPARTS::QUERY => $_SERVER['QUERY_STRING'],
+         URLPARTS::FRAGMENT => ''
       ));
    }
 
    /**
-    * set a view additional tokens based on the main tokens
-    */
-   private function updateAdditionalTokens()
-   {
-      $this->tokens->S = $this->tokens->s ? $this->tokens->s.':' : '';
-      $this->tokens->O = $this->tokens->o && $this->tokens->o != $this->getDefaultPort($this->tokens->s) ? ':'.$this->tokens->o : '';
-      $this->tokens->p = $this->tokens->P && substr($this->tokens->P, 0, 1) == '/' ? substr($this->tokens->P, 1) : $this->tokens->P;
-      $this->tokens->Q = $this->tokens->q ? '?'.$this->tokens->q : '';
-      $this->tokens->F = $this->tokens->f ? '#'.$this->tokens->f : '';
-
-      $this->tokens->l = $this->tokens->u.':'.$this->tokens->k;
-      $this->tokens->L = $this->tokens->u || $this->tokens->k ? $this->tokens->u.':'.$this->tokens->k.'@' : '';
-      $this->tokens->a = $this->tokens->L.$this->tokens->h.$this->tokens->O;
-      $this->tokens->A = $this->tokens->L.$this->tokens->h.$this->tokens->O ? '//'.$this->tokens->L.$this->tokens->h.$this->tokens->O : '';
-   }
-
-   /**
-    * gets the default port of a given scheme
+    * gets the default port of a given scheme to omit the port in returned url strings if possible
     */
    private function getDefaultPort($scheme)
    {
@@ -225,16 +313,43 @@ class Url
       {
          case 'http': $result = '80'; break;
          case 'https': $result = '443'; break;
+         case 'ftp': $result = '21'; break;
       }
       return $result;
    }
 
    /**
-    * eliminates double slashes and unneeded directory changes ("../")
+    * detect the document_root on a more reliable way as usage of $_SERVER['DOCUMENT_ROOT']
+    */
+   private function getDocumentRoot()
+   {
+      static $result = null;
+
+      if ($result === null)
+      {
+         if (($envDocRoot = getenv('DOCUMENT_ROOT')) && ($envDocRoot = realpath($envDocRoot)) && strpos(realpath(__FILE__), $envDocRoot) === 0)
+         {
+            $result = $envDocRoot;
+         }
+         elseif (($pos = strpos($absolutePath = realpath(basename($localPath = str_replace('/', DIRECTORY_SEPARATOR, getenv('SCRIPT_NAME')))), $localPath)) > 0 && $pos === strlen($absolutePath) - strlen($localPath))
+         {
+            $result = substr($absolutePath, 0, $pos);
+         }
+         elseif (($pos = strpos($absolutePath = realpath(getenv('SCRIPT_FILENAME')), $localPath = str_replace('/', DIRECTORY_SEPARATOR, getenv('SCRIPT_NAME')))) > 0 && $pos == strlen($absolutePath) - strlen($localPath))
+         {
+            $result = substr($absolutePath, 0, $pos);
+         }
+      }
+
+      return $result;
+   }
+
+   /**
+    * eliminates double slashes and unneeded directory changes ("xyz/../") to make the path part of the url more beautiful and shorter
     */
    private function resolvePath($path)
    {
-      return preg_replace('/\/+/', '/', preg_replace('/\/?[^\/]+\/\.\.\/?/', '/', $path));
+      return ltrim(preg_replace('/\/?[^\/]+\/\.\.\/?/', '/', preg_replace('/\/+/', '/', $path)), '/');
    }
 }
 
