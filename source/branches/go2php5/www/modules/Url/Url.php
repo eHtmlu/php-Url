@@ -191,7 +191,7 @@ class Url
     * @return string A well formed and correct formatted url
     */
    // @todo der port wird hier ungefragt weggelassen, wenn es sich um den default port des schemas handelt. Dies sollte noch überlegt werden ob das gut ist.
-   public function getUrlPartSequence($parts = null)
+   public function getUrlPartSequence($parts = 0)
    {
       return (($parts & 1) === 1 ? $this->getUrlPart(URLPARTS::SCHEME) : '') .
              '//' .
