@@ -85,8 +85,8 @@ class Url
       $auth = explode(':', $this->tokens[UrlParts::AUTHENTICATION], 2);
 
       return array(
-      	'username' => urldecode($auth[0]),
-      	'password' => urldecode($auth[1])
+         'username' => urldecode($auth[0]),
+         'password' => urldecode($auth[1])
       );
    }
 
