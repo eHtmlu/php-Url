@@ -1,6 +1,6 @@
 <?php
 
-class URLPARTS
+class UrlParts
 {
 	const SCHEME = 1;
 	const AUTHENTICATION = 2;
