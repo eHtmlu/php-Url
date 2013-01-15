@@ -357,13 +357,20 @@ class Url implements IUrl
       {
          $this->setUrlByInstance($fileOrUrlOrInstance);
       }
-      elseif (@file_exists($fileOrUrlOrInstance))
+      elseif (is_string($fileOrUrlOrInstance))
       {
-         $this->setUrlByFilePath($fileOrUrlOrInstance);
+         if (@file_exists($fileOrUrlOrInstance))
+         {
+            $this->setUrlByFilePath($fileOrUrlOrInstance);
+         }
+         else
+         {
+            $this->setUrlByUrlString($fileOrUrlOrInstance);
+         }
       }
       else
       {
-         $this->setUrlByUrlString($fileOrUrlOrInstance);
+         throw new Exception('Can not set url because the given parameter is not valid.');
       }
 
       return $this;
