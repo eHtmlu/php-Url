@@ -344,6 +344,8 @@ class Url implements IUrl
    /**
     * Set the url based on the current user request, an other Url instance, a given file or directory path or a given url string
     *
+    * @TODO if a given url string begins with "//" (relative to current scheme) the file_exists function is on a windows-machine very slow because it can also be a network path. This is only one example of many where an url string can interpreted as a file path even though it is not. So I think we need a more stable concept.
+    *
     * @param mixed $fileOrUrlOrInstance Like the first parameter of __construct
     * @return object The current Url instance ($this)
     */
