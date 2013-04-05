@@ -24,7 +24,7 @@ class Url implements IUrl
    /**
     * Initialize the tokens of a given Url, a given path or the current user request
     *
-    * @param string $fileOrUrlOrInstance (optional) A file or directory path to get the associated Url. Or an url as a string to initialize this Url. Or NULL (default) for the current user requested Url. Or an object instance with the IUrl interface. The url as a string can also be a relative url which will interpreted as relative to the current user request.
+    * @param mixed $fileOrUrlOrInstance (optional) NULL (default) for the current user requested Url. Or a string which represents a file path (to initialise the associated url) or the url itself. Or an instance of SplFileObject or SplFileInfo which represents an existing file or directory to initialise the associated url. Or an object instance with the IUrl interface to copy that url. The url as a string can also be a relative url which will interpreted as relative to the current user request, but be carefully with that because if there is also a matched file path based on the working directory than this will preferred. This will be a problem if the working directory is not the user requested directory.
     */
    public function __construct($fileOrUrlOrInstance = null)
    {
@@ -172,7 +172,8 @@ class Url implements IUrl
             array_shift($targPath);
          }
 
-         $result = str_repeat('../', count($basePath) - 1) . implode('/', $targPath);
+         $basePathCount = count($basePath);
+         $result = str_repeat('../', $basePathCount > 0 ? $basePathCount - 1 : 0) . implode('/', $targPath);
       }
 
       return $result;
@@ -344,31 +345,40 @@ class Url implements IUrl
    /**
     * Set the url based on the current user request, an other Url instance, a given file or directory path or a given url string
     *
-    * @TODO if a given url string begins with "//" (relative to current scheme) the file_exists function is on a windows-machine very slow because it can also be a network path. This is only one example of many where an url string can interpreted as a file path even though it is not. So I think we need a more stable concept.
-    *
     * @param mixed $fileOrUrlOrInstance Like the first parameter of __construct
     * @return object The current Url instance ($this)
     */
    public function setUrl($fileOrUrlOrInstance = null)
    {
+      // if undefined -> get the current requested url
       if ($fileOrUrlOrInstance === null)
       {
          $this->setUrlByCurrentRequest();
       }
+      // if is an instance of Url -> copy the url from the given instance
       elseif ($fileOrUrlOrInstance instanceof Url)
       {
          $this->setUrlByInstance($fileOrUrlOrInstance);
       }
-      elseif (is_string($fileOrUrlOrInstance))
+      // if is an instance of SplFileObject -> get the url which points to the given file
+      elseif ($fileOrUrlOrInstance instanceof SplFileObject)
       {
-         if (@file_exists($fileOrUrlOrInstance))
-         {
-            $this->setUrlByFilePath($fileOrUrlOrInstance);
-         }
-         else
-         {
-            $this->setUrlByUrlString($fileOrUrlOrInstance);
-         }
+         $this->setUrlByFilePath((STRING) $fileOrUrlOrInstance);
+      }
+      // if is an instance of SplFileInfo and represents an existing file or directory -> get the url which points to the given file or directory
+      elseif (($fileOrUrlOrInstance instanceof SplFileInfo) && ($filePath = $fileOrUrlOrInstance->getRealPath()))
+      {
+         $this->setUrlByFilePath($filePath);
+      }
+      // if is a string which represents a filepath of an existing file or directory (but don't starts with '//') -> get the url which points to the given file or directory
+      elseif (($isString = is_string($fileOrUrlOrInstance)) && !($fileOrUrlOrInstance[0] == '/' && $fileOrUrlOrInstance[1] == '/') && @file_exists($fileOrUrlOrInstance))
+      {
+         $this->setUrlByFilePath($fileOrUrlOrInstance);
+      }
+      // if is a string anyway -> evaluate as an url string
+      elseif ($isString)
+      {
+         $this->setUrlByUrlString($fileOrUrlOrInstance);
       }
       else
       {
