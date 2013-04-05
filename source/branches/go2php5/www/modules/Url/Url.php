@@ -24,7 +24,7 @@ class Url implements IUrl
    /**
     * Initialize the tokens of a given Url, a given path or the current user request
     *
-    * @param mixed $fileOrUrlOrInstance (optional) NULL (default) for the current user requested Url. Or a string which represents a file path (to initialise the associated url) or the url itself. Or an instance of SplFileObject or SplFileInfo which represents an existing file or directory to initialise the associated url. Or an object instance with the IUrl interface to copy that url. The url as a string can also be a relative url which will interpreted as relative to the current user request, but be carefully with that because if there is also a matched file path based on the working directory than this will preferred. This will be a problem if the working directory is not the user requested directory.
+    * @param mixed $fileOrUrlOrInstance (optional) NULL (default) for the current user requested Url. Or a string which represents the url itself (relative urls will interpreted as relative to current user request). Or an instance of SplFileObject or SplFileInfo which represents an existing file or directory to initialise the associated url. Or an object instance with the IUrl interface to copy that url.
     */
    public function __construct($fileOrUrlOrInstance = null)
    {
@@ -365,18 +365,20 @@ class Url implements IUrl
       {
          $this->setUrlByFilePath((STRING) $fileOrUrlOrInstance);
       }
-      // if is an instance of SplFileInfo and represents an existing file or directory -> get the url which points to the given file or directory
-      elseif (($fileOrUrlOrInstance instanceof SplFileInfo) && ($filePath = $fileOrUrlOrInstance->getRealPath()))
+      // if is an instance of SplFileInfo -> get the url which points to the given file or directory
+      elseif ($fileOrUrlOrInstance instanceof SplFileInfo)
       {
-         $this->setUrlByFilePath($filePath);
-      }
-      // if is a string which represents a filepath of an existing file or directory (but don't starts with '//') -> get the url which points to the given file or directory
-      elseif (($isString = is_string($fileOrUrlOrInstance)) && !($fileOrUrlOrInstance[0] == '/' && $fileOrUrlOrInstance[1] == '/') && @file_exists($fileOrUrlOrInstance))
-      {
-         $this->setUrlByFilePath($fileOrUrlOrInstance);
+         if ($filePath = $fileOrUrlOrInstance->getRealPath())
+         {
+            $this->setUrlByFilePath($filePath);
+         }
+         else
+         {
+            throw new Exception('The given instance of SplFileInfo do not represents an existing file or directory.');
+         }
       }
       // if is a string anyway -> evaluate as an url string
-      elseif ($isString)
+      elseif (is_string($fileOrUrlOrInstance))
       {
          $this->setUrlByUrlString($fileOrUrlOrInstance);
       }
