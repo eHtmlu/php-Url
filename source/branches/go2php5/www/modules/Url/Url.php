@@ -38,6 +38,16 @@ class Url implements IUrl
    }
 
    /**
+    * The String representation of an Url object is equal to the default return value of the getUrl method
+    *
+    * @return string
+    */
+   public function __toString()
+   {
+      return $this->getUrl();
+   }
+
+   /**
     * Gets the scheme part of the url
     *
     * @return string Scheme part of the url
