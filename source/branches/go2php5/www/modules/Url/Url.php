@@ -315,8 +315,8 @@ class Url implements IUrl
       foreach (explode('&', $query) as $chunk)
       {
          if (!$chunk) continue;
-         $chunk = explode('=', $chunk);
-         $result[] = rawurlencode(urldecode($chunk[0])) . '=' . rawurlencode(urldecode($chunk[1]));
+         $chunk = explode('=', $chunk, 2);
+         $result[] = rawurlencode(urldecode($chunk[0])) . (isset($chunk[1]) ? '=' . rawurlencode(urldecode($chunk[1])) : '');
       }
 
       $this->tokens[UrlParts::QUERY] = implode('&', $result);
@@ -373,7 +373,7 @@ class Url implements IUrl
       // if is an instance of SplFileObject -> get the url which points to the given file
       elseif ($fileOrUrlOrInstance instanceof SplFileObject)
       {
-         $this->setUrlByFilePath((STRING) $fileOrUrlOrInstance);
+         $this->setUrlByFilePath($fileOrUrlOrInstance->getRealPath());
       }
       // if is an instance of SplFileInfo -> get the url which points to the given file or directory
       elseif ($fileOrUrlOrInstance instanceof SplFileInfo)
@@ -407,8 +407,8 @@ class Url implements IUrl
     */
    public function setUrlByCurrentRequest()
    {
-      $this->setScheme(substr($_SERVER["SERVER_PROTOCOL"], 0, strpos($_SERVER["SERVER_PROTOCOL"], '/')) . ($_SERVER["HTTPS"] && strtolower($_SERVER["HTTPS"]) != 'off' ? 's' : ''));
-      $this->setUserInfo(rawurlencode($_SERVER['PHP_AUTH_USER']) . ($_SERVER['PHP_AUTH_PW'] ? ':' . rawurlencode($_SERVER['PHP_AUTH_PW']) : ''));
+      $this->setScheme(substr($_SERVER["SERVER_PROTOCOL"], 0, strpos($_SERVER["SERVER_PROTOCOL"], '/')) . (isset($_SERVER["HTTPS"]) && strtolower($_SERVER["HTTPS"]) != 'off' ? 's' : ''));
+      $this->setUserInfo((isset($_SERVER['PHP_AUTH_USER']) ? rawurlencode($_SERVER['PHP_AUTH_USER']) : '') . (isset($_SERVER['PHP_AUTH_PW']) && !empty($_SERVER['PHP_AUTH_PW']) ? ':' . rawurlencode($_SERVER['PHP_AUTH_PW']) : ''));
       $this->setHost($_SERVER['SERVER_NAME']);
       $this->setPort($this->defaultPorts[$this->getScheme()] == $_SERVER['SERVER_PORT'] ? null : $_SERVER['SERVER_PORT']);
       $this->setPath(strpos($_SERVER['REQUEST_URI'], '?') !== false ? substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], '?')) : $_SERVER['REQUEST_URI']);
@@ -477,33 +477,33 @@ class Url implements IUrl
       $this->setUrlByCurrentRequest();
 
       // reset scheme if is defined
-      if ($match[1])
+      if (!empty($match[1]))
       {
          $this->setScheme($match[1]);
       }
 
       // reset authority if the authority part or the scheme part is defined
-      if ($match[4] || $match[1])
+      if (!empty($match[4]) || !empty($match[1]))
       {
-         $this->setUserInfo($match[2] . $match[3]);
-         $this->setHost($match[4]);
-         $this->setPort($match[5] ? $match[5] : null);
+         $this->setUserInfo((!empty($match[2]) ? $match[2] : '') . (!empty($match[3]) ? $match[3] : ''));
+         $this->setHost(!empty($match[4]) ? $match[4] : '');
+         $this->setPort(!empty($match[5]) ? $match[5] : null);
       }
 
       // reset path if the path part or other parts which the path part is based on are defined
-      if ($match[6] || $match[4] || $match[1])
+      if (!empty($match[6]) || !empty($match[4]) || !empty($match[1]))
       {
-         $this->setPath($match[6] ? $match[6] : '/');
+         $this->setPath(!empty($match[6]) ? $match[6] : '/');
       }
 
       // reset query if the query part or other parts which the query part is based on are defined
-      if ($match[7] || $match[6] || $match[4] || $match[1])
+      if (!empty($match[7]) || !empty($match[6]) || !empty($match[4]) || !empty($match[1]))
       {
-         $this->setQuery($match[7] ? $match[7] : '');
+         $this->setQuery(!empty($match[7]) ? $match[7] : '');
       }
 
       // reset fragment
-      $this->setFragment($match[8]);
+      $this->setFragment(!empty($match[8]) ? $match[8] : '');
 
       return $this;
    }
