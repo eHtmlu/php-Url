@@ -118,7 +118,7 @@ class Url implements IUrl
    {
       parse_str($this->tokens[UrlParts::QUERY], $param);
 
-      if (get_magic_quotes_gpc())
+      if (function_exists('get_magic_quotes_gpc') && call_user_func('get_magic_quotes_gpc'))
       {
          $param = $this->stripSlashesRecursive($param);
       }
