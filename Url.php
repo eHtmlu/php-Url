@@ -409,7 +409,7 @@ class Url implements IUrl
    {
       $this->setScheme(substr($_SERVER["SERVER_PROTOCOL"], 0, strpos($_SERVER["SERVER_PROTOCOL"], '/')) . (isset($_SERVER["HTTPS"]) && strtolower($_SERVER["HTTPS"]) != 'off' ? 's' : ''));
       $this->setUserInfo((isset($_SERVER['PHP_AUTH_USER']) ? rawurlencode($_SERVER['PHP_AUTH_USER']) : '') . (isset($_SERVER['PHP_AUTH_PW']) && !empty($_SERVER['PHP_AUTH_PW']) ? ':' . rawurlencode($_SERVER['PHP_AUTH_PW']) : ''));
-      $this->setHost($_SERVER['SERVER_NAME']);
+      $this->setHost($_SERVER['HTTP_HOST'] ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME']);
       $this->setPort($this->defaultPorts[$this->getScheme()] == $_SERVER['SERVER_PORT'] ? null : $_SERVER['SERVER_PORT']);
       $this->setPath(strpos($_SERVER['REQUEST_URI'], '?') !== false ? substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], '?')) : $_SERVER['REQUEST_URI']);
       $this->setQuery($_SERVER['QUERY_STRING']);
