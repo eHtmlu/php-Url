@@ -454,7 +454,7 @@ class Url implements IUrl
       }
 
       $this->setUrlByCurrentRequest();
-      $this->setPath(str_replace(DIRECTORY_SEPARATOR, '/', $fileOrDirname) . ( is_dir($documentRoot . $fileOrDirname) ? '/' : '' ));
+      $this->setPath((isset($_SERVER['CONTEXT_PREFIX']) ? $_SERVER['CONTEXT_PREFIX'] : '') . str_replace(DIRECTORY_SEPARATOR, '/', $fileOrDirname) . ( is_dir($documentRoot . $fileOrDirname) ? '/' : '' ));
       $this->setQuery('');
       $this->setFragment('');
 
