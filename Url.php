@@ -509,7 +509,7 @@ class Url implements IUrl
    }
 
    /**
-    * removing dot-segments ".." and "." to make the path of the url more beautiful and shorter
+    * removing dot-segments ("..", ".") and double slashes ("//") to make the path of the url more beautiful and shorter
     *
     * @param $path The path which we have to resolve
     * @return string The resolved path
@@ -534,6 +534,12 @@ class Url implements IUrl
                   $path[$a] = '';
                }
                else
+               {
+                  array_splice($path, $a, 1);
+                  $a--;
+               }
+            case '':
+               if ($a && $a + 1 < count($path))
                {
                   array_splice($path, $a, 1);
                   $a--;
