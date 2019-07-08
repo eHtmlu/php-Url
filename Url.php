@@ -299,6 +299,19 @@ class Url implements IUrl
    }
 
    /**
+    * Appends a path snippet to the existing path. With appending "/.." it's also possible to remove parts of the existing path.
+    *
+    * @param string $path Path snippet to append. Prefix it with "/" to get ensure that it's separted.
+    * @return object The current Url instance ($this)
+    */
+   public function appendPath($path)
+   {
+      $this->setPath($this->getPath() . $path);
+
+      return $this;
+   }
+
+   /**
     * Sets the query to a given value
     *
     * @param string $query The new query value as a string (empty by default)
