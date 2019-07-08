@@ -277,7 +277,7 @@ class Url implements IUrl
    /**
     * Sets the path to a given value
     *
-    * @param string $fragment The new fragment value (root path '/' by default)
+    * @param string $path The new path value (root path '/' by default)
     * @return object The current Url instance ($this)
     */
    public function setPath($path = '/')
