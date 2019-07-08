@@ -538,6 +538,7 @@ class Url implements IUrl
                   array_splice($path, $a, 1);
                   $a--;
                }
+               break;
             case '':
                if ($a && $a + 1 < count($path))
                {
