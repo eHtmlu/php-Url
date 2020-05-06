@@ -144,10 +144,8 @@ class Url implements IUrl
     */
    public function getUrl($urlParts = UrlParts::ALL)
    {
-      $userInfo = explode(':', $this->tokens[UrlParts::USERINFO]);
-
       $authority =
-         (($urlParts & UrlParts::USERINFO) === UrlParts::USERINFO && $this->tokens[UrlParts::USERINFO] ? $userInfo[0] . (count($userInfo) == 2 && $userInfo[1] === '' ? ':' : '') . '@' : '') .
+         (($urlParts & UrlParts::USERINFO) === UrlParts::USERINFO && $this->tokens[UrlParts::USERINFO] ? $this->tokens[UrlParts::USERINFO] . '@' : '') .
          (($urlParts & UrlParts::HOST) === UrlParts::HOST && $this->tokens[UrlParts::HOST] ? $this->tokens[UrlParts::HOST] : '') .
          (($urlParts & UrlParts::PORT) === UrlParts::PORT && $this->tokens[UrlParts::PORT] && $this->tokens[UrlParts::PORT] != $this->defaultPorts[$this->tokens[UrlParts::SCHEME]] ? ':' . $this->tokens[UrlParts::PORT] : '');
 
