@@ -118,7 +118,8 @@ class Url implements IUrl
    {
       parse_str($this->tokens[UrlParts::QUERY], $param);
 
-      if (function_exists('get_magic_quotes_gpc') && call_user_func('get_magic_quotes_gpc'))
+      // If PHP version lower than 8.0.0 and magic quotes are ON then remove slashes recursively
+      if (version_compare('8.0.0', phpversion()) === 1 && function_exists('get_magic_quotes_gpc') && @call_user_func('get_magic_quotes_gpc'))
       {
          $param = $this->stripSlashesRecursive($param);
       }
