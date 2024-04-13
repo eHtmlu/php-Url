@@ -40,7 +40,16 @@ $url->setQueryParameters([
 echo $url; // -> https://www.example.com/path/to/javascript/file.js?version=1713032631
 ```
 
-# Documentation
+# Installation
+Just add the files to your project and include them in this order:
+```
+require_once 'UrlParts.php';
+require_once 'IUrl.php';
+require_once 'Url.php';
+```
+
+
+# Usage
 
 ## Create a new Url instance
 There are various ways to create an Url instance
